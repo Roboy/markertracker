@@ -8,8 +8,8 @@
 #include "markertracker.hpp"
 #include "renderer.hpp"
 
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 1090
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
 
 using namespace std;
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     glewInit();
 
     // initialize marker tracker for webcams with device IDs 0 and 1
-    std::vector<int> devices = {0};
+    std::vector<int> devices = {0,1};
     MarkerTracker markerTracker(devices);
 
     for(uint device=0;device<markerTracker.webcam.size(); device++) {
@@ -68,12 +68,14 @@ int main(int argc, char *argv[]) {
 
     // create opengl renderer
     char file_path[] = "/home/letrend/workspace/markertracker";
-    string obj = "object";
-    Renderer renderer(file_path, obj);
+    string obj = "sphere";
+    Renderer renderer(file_path, obj.c_str());
 
     // load a mesh
-    Mesh mesh;
-    mesh.LoadMesh("/home/letrend/workspace/poseestimator/models/Iron_Man_mark_6/Iron_Man_mark_6.dae");
+    Mesh origin, sphere;
+    sphere.LoadMesh("/home/letrend/workspace/markertracker/models/sphere.dae");
+
+    Matrix4f pose_sphere = Matrix4f::Identity();
 
     ActionState currentState = Initialize;
 
@@ -112,11 +114,12 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case Render: {
-                Matrix4f pose = markerTracker.ModelMatrix.cast<float>();
-                cout << "pose: \n" << pose << endl;
+                pose_sphere = markerTracker.ModelMatrix.cast<float>();
+                Vector3f position = pose_sphere.topRightCorner(3,1);
+                printf("( %.4f, %.4f, %.4f )\n", position(0), position(1), position(2));
                 renderer.updateViewMatrix(obj, window);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                renderer.renderColor(obj, pose, &mesh);
+                renderer.renderColor(obj, pose_sphere, &sphere);
                 window.display();
                 currentState = NextState(currentState);
                 break;

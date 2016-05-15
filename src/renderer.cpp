@@ -1,11 +1,8 @@
 #include <SFML/Window/Keyboard.hpp>
 #include "renderer.hpp"
 
-Renderer::Renderer(const char *file_path, string &object) {
+Renderer::Renderer(const char *file_path, const char *object) {
     char file[200];
-    // load a model
-    sprintf(file, "%s/images/%s.png", file_path, object.c_str());
-
     // create color program
     string src;
     sprintf(file, "%s/shader/color.vertexshader", file_path);
@@ -22,7 +19,10 @@ Renderer::Renderer(const char *file_path, string &object) {
 
     ModelMatrix[object] = Matrix4f::Identity();
     ViewMatrix[object] = Matrix4f::Identity();
-    ViewMatrix[object].topRightCorner(3, 1) << 0, 0, -10;
+    Matrix3f rot;
+    rot = Eigen::AngleAxisf(degreesToRadians(180), Vector3f::UnitY());
+    ViewMatrix[object].topLeftCorner(3, 3) = rot;
+    ViewMatrix[object].topRightCorner(3, 1) << 0,0,0;
 
     Mat cameraMatrix, distCoeffs;
     sprintf(file, "%s/intrinsics.xml", file_path);
@@ -93,7 +93,7 @@ Mat Renderer::renderColor(string &object, Matrix4f &pose, Mesh *mesh ) {
 }
 
 void Renderer::updateViewMatrix(string &object, sf::Window &window){
-    float speed_trans = 0.1f , speed_rot = 0.01f;
+    float speed_trans = 0.2f , speed_rot = 0.001f;
 
     // Get mouse position
     sf::Vector2i windowsize = sf::Vector2i(window.getSize().x, window.getSize().y);
@@ -105,7 +105,7 @@ void Renderer::updateViewMatrix(string &object, sf::Window &window){
     }
     if(sticky) {
         sf::Vector2i mousepos = sf::Mouse::getPosition(window);
-        sf::Vector2i delta = mousepos-windowsize/2;
+        sf::Vector2i delta = windowsize/2-mousepos;
         if(delta.x != 0 || delta.y != 0)
         {
             // set cursor to window center
@@ -114,8 +114,8 @@ void Renderer::updateViewMatrix(string &object, sf::Window &window){
             float horizontalAngle = speed_rot * float(delta.x);
             float verticalAngle = speed_rot * float(delta.y);
 
-            rot = AngleAxisf(horizontalAngle, Vector3f::UnitY()) *
-                  AngleAxisf(verticalAngle, Vector3f::UnitX());
+            rot = Eigen::AngleAxisf(horizontalAngle, ViewMatrix[object].block<1, 3>(1, 0)) *
+                  Eigen::AngleAxisf(verticalAngle, ViewMatrix[object].block<1, 3>(0, 0));
         }
     }
 

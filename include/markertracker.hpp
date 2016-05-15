@@ -96,7 +96,7 @@ struct WebcamMarkerModel:Functor<double>{
     double FocalLegth = 525;
     double horizontalFOV = 62.0*M_PI/180.0;
     double verticalFOV = 48.6*M_PI/180.0;
-    int threshold_value = 235;
+    int threshold_value = 240;
     std::vector<uint> markerIDs;
     NumericalDiff<WebcamMarkerModel> *numDiff;
     Eigen::LevenbergMarquardt<Eigen::NumericalDiff<WebcamMarkerModel>, double> *lm;

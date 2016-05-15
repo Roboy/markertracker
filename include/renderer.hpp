@@ -47,7 +47,7 @@ struct PackedVertex {
 
 class Renderer {
 public:
-    Renderer(const char *file_path, string &object);
+    Renderer(const char *file_path, const char *object);
 
     ~Renderer();
 

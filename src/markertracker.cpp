@@ -97,8 +97,8 @@ void WebcamMarkerModel::initializeModel(){
                              cv::Point());
             }
         }
-        imshow("intialization", img);
-        cv::waitKey(1);
+//        imshow("intialization", img);
+//        cv::waitKey(1);
     }
 
     // write those positions to the model
@@ -427,7 +427,7 @@ bool MarkerTracker::findTrafoBetweenCameras(){
         poseEstimation();
         goodEnough = 0;
         for(uint device=0; device<webcam.size(); device++){
-            if(webcam[device].reprojectionError<5.0){
+            if(webcam[device].reprojectionError<1.0){
                 bestPose[device] = webcam[device].ModelMatrix;
                 goodEnough += 1;
             }
