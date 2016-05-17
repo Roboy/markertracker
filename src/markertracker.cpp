@@ -25,19 +25,18 @@ WebcamMarkerModel::WebcamMarkerModel(void): Functor<double>(6,2*MARKER){
 
 void WebcamMarkerModel::initializeModel(){
     // this is the representation of the marker
-    pos3D(0,0)=0;       pos3D(1,0)=-0.125;   pos3D(2,0)=0;       pos3D(3,0)=1;
-    pos3D(0,1)=0;       pos3D(1,1)=0;       pos3D(2,1)=-0.083;   pos3D(3,1)=1;
-    pos3D(0,2)=-0.104;   pos3D(1,2)=0;       pos3D(2,2)=0;       pos3D(3,2)=1;
-    pos3D(0,3)=0.183;  pos3D(1,3)=0;       pos3D(2,3)=0;  pos3D(3,3)=1;
+    pos3D(0,0)=0;       pos3D(1,0)=-0.123;   pos3D(2,0)=0;       pos3D(3,0)=1;
+    pos3D(0,1)=0;       pos3D(1,1)=0;       pos3D(2,1)=-0.08;   pos3D(3,1)=1;
+    pos3D(0,2)=-0.105;   pos3D(1,2)=0;       pos3D(2,2)=0;       pos3D(3,2)=1;
+    pos3D(0,3)=0.182;  pos3D(1,3)=0;       pos3D(2,3)=0;  pos3D(3,3)=1;
 
     origin3D << 0,0,0,1;
     origin2D << 0,0,1;
 
-    pose << 0,0,0,0,0,0.01;
-
     ModelMatrix = Matrix4d::Identity();
 
     vector<cv::Point2f> centers(MARKER);
+    vector<float> radius(MARKER);
     while(true) {
         capture.read(img);
         // undistort
@@ -80,8 +79,7 @@ void WebcamMarkerModel::initializeModel(){
             for (int idx = 0; idx < contours.size(); idx++) {
                 drawContours(img, contours, idx, cv::Scalar(255, 0, 0), 4, 8, hierarchy, 0,
                              cv::Point());
-                float radius;
-                minEnclosingCircle(contours[idx], centers[idx], radius);
+                minEnclosingCircle(contours[idx], centers[idx], radius[idx]);
             }
             // sort the centers wrt x coordinates
             sort(centers.begin(), centers.end(),
@@ -90,28 +88,28 @@ void WebcamMarkerModel::initializeModel(){
                  });
             char str[1];
             sprintf(str, "%d", 2);
-            circle(img, centers[0], 10, cv::Scalar(0, 255, 0), 4);
+            circle(img, centers[0], 10, cv::Scalar(0, 255, 0), (int)radius[0]);
             putText(img, str, centers[0], cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1,
-                    cv::Scalar::all(255));
+                    cv::Scalar::all(0));
             sprintf(str, "%d", 3);
-            circle(img, centers[3], 10, cv::Scalar(0, 255, 0), 4);
+            circle(img, centers[3], 10, cv::Scalar(0, 255, 0), (int)radius[3]);
             putText(img, str, centers[3], cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1,
-                    cv::Scalar::all(255));
+                    cv::Scalar::all(0));
             // sort the remaining two centers wrt y coordinates
             sprintf(str, "%d", 0);
             circle(img,
-                   centers[1].y < centers[2].y ? centers[2] : centers[1], 10,
-                   cv::Scalar(0, 255, 0), 4);
+                   centers[1].y > centers[2].y ? centers[2] : centers[1], 10,
+                   cv::Scalar(0, 255, 0), centers[1].y < centers[2].y ? (int)radius[2] : (int)radius[1]);
             putText(img, str,
-                    centers[1].y < centers[2].y ? centers[1] : centers[2],
-                    cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar::all(255));
+                    centers[1].y > centers[2].y ? centers[1] : centers[2],
+                    cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar::all(0));
             sprintf(str, "%d", 1);
             circle(img,
-                   centers[1].y > centers[2].y ? centers[2] : centers[1], 10,
-                   cv::Scalar(0, 255, 0), 4);
+                   centers[1].y < centers[2].y ? centers[2] : centers[1], 10,
+                   cv::Scalar(0, 255, 0), centers[1].y > centers[2].y ? (int)radius[2] : (int)radius[1]);
             putText(img, str,
                     centers[1].y < centers[2].y ? centers[2] : centers[1],
-                    cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar::all(255));
+                    cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar::all(0));
             break;
         } else {
             // draw detected contours onto output image
@@ -120,13 +118,13 @@ void WebcamMarkerModel::initializeModel(){
                              cv::Point());
             }
         }
-//        imshow("intialization", img);
-//        cv::waitKey(1);
+        cv::imshow(name, img);
+        cv::waitKey(1);
     }
 
     // write those positions to the model
-    pos2D(0,0) = centers[2].x; pos2D(1,0) = centers[2].y; pos2D(2,0) = 1;
-    pos2D(0,1) = centers[1].x; pos2D(1,1) = centers[1].y; pos2D(2,1) = 1;
+    pos2D(0,0) = centers[1].y > centers[2].y ? centers[2].x : centers[1].x; pos2D(1,0) = centers[1].y > centers[2].y ? centers[2].y : centers[1].y; pos2D(2,0) = 1;
+    pos2D(0,1) = centers[1].y < centers[2].y ? centers[2].x : centers[1].x; pos2D(1,1) = centers[1].y < centers[2].y ? centers[2].y : centers[1].y; pos2D(2,1) = 1;
     pos2D(0,2) = centers[0].x; pos2D(1,2) = centers[0].y; pos2D(2,2) = 1;
     pos2D(0,3) = centers[3].x; pos2D(1,3) = centers[3].y; pos2D(2,3) = 1;
 //    cout << "pos2D: \n" << pos2D << endl;
@@ -135,7 +133,7 @@ void WebcamMarkerModel::initializeModel(){
         markerIDs[id]=id;
 
     // find the pose
-    pose << 0,0,0,0,0,0.6;
+    pose << 0,0,0,0,0,1;
 
     numDiff = new NumericalDiff<WebcamMarkerModel>(*this);
     lm = new LevenbergMarquardt<NumericalDiff<WebcamMarkerModel>, double> (*numDiff);
@@ -157,14 +155,16 @@ void WebcamMarkerModel::initializeModel(){
         projectedPosition2D(0,col)/=projectedPosition2D(2,col);
         projectedPosition2D(1,col)/=projectedPosition2D(2,col);
 
-        float radius=10;
         cv::Point2f center(projectedPosition2D(0,col), projectedPosition2D(1,col));
-        circle(img, center, radius, cv::Scalar(255, 255, 0), 4);
+        circle(img, center, 5, cv::Scalar(255, 255, 0), 4);
         line(img, cv::Point2f(origin2D(0),origin2D(1)), center, cv::Scalar::all(255),4);
         sprintf(str,"%d",markerIDs[col]);
         putText(img,str,center,cv::FONT_HERSHEY_SCRIPT_SIMPLEX,1,cv::Scalar::all(255));
     }
 //    cout << "projectedPosition2D: \n" << projectedPosition2D << endl;
+
+    cv::imshow(name, img);
+    cv::waitKey(1);
 
     delete numDiff;
     delete lm;
@@ -319,7 +319,7 @@ bool WebcamMarkerModel::track(){
             // need to instantiate new lm every iteration so it will be using the new positions
             numDiff = new NumericalDiff<WebcamMarkerModel>(*this);
             lm = new Eigen::LevenbergMarquardt<Eigen::NumericalDiff<WebcamMarkerModel>, double> (*numDiff);
-            lm->parameters.maxfev = 2000;
+            lm->parameters.maxfev = 500;
             lm->parameters.xtol = 1.0e-10;
             int ret = lm->minimize(pose);
 //                    cout << "iterations: " << lm->iter << endl;
@@ -346,7 +346,7 @@ bool WebcamMarkerModel::track(){
                 circle(img, center, radius, cv::Scalar(255, 0, 0), 4);
                 line(img, cv::Point2f(origin2D(0),origin2D(1)), center, cv::Scalar::all(255),4);
                 sprintf(name,"%d",markerIDs[col]);
-                putText(img,name,center,cv::FONT_HERSHEY_SCRIPT_SIMPLEX,1,cv::Scalar::all(255));
+                putText(img,name,center,cv::FONT_HERSHEY_SCRIPT_SIMPLEX,1,cv::Scalar::all(0));
             }
 
             reprojectionError = lm->fnorm;
@@ -469,10 +469,8 @@ void MarkerTracker::poseEstimation(){
 
 bool MarkerTracker::init() {
     cout << "please stand in front of cameras" << endl;
-    for(uint device=0; device<webcam.size(); device++) {
+    for (uint device = 0; device < webcam.size(); device++) {
         webcam[device].initializeModel();
-        cv::imshow(webcam[device].name, webcam[device].img);
-        cv::waitKey(1);
     }
     return findTrafoBetweenCameras();
 }
@@ -481,7 +479,6 @@ bool MarkerTracker::findTrafoBetweenCameras(){
     // measure for a few seconds until estimates are good enough to get transform between cameras, otherwise escape
     vector<Matrix4d> bestPose(webcam.size());
     uint goodEnough;
-    timer.start();
     do{
         poseEstimation();
         goodEnough = 0;
@@ -489,12 +486,10 @@ bool MarkerTracker::findTrafoBetweenCameras(){
             if(webcam[device].reprojectionError<1.0){
                 bestPose[device] = webcam[device].ModelMatrix;
                 goodEnough += 1;
+            }else if(webcam[device].reprojectionError>20){ // lost coorect assignement, reinitialize
+                webcam[device].initializeModel();
             }
-//            cout << webcam[device].name << " reprojection error " << webcam[device].reprojectionError << " goodEnough " << goodEnough << endl;
-        }
-        if(timer.elapsedTime()>1.0){
-            cout << "could not get accurate enough pose estimates" << endl;
-            return false;
+            cout << webcam[device].name << " reprojection error " << webcam[device].reprojectionError << " goodEnough " << goodEnough << endl;
         }
     }while(goodEnough != webcam.size());
     for(uint device=0; device<webcam.size(); device++) {
