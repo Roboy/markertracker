@@ -1,5 +1,28 @@
 #include "markertracker.hpp"
 
+WebcamMarkerModel::WebcamMarkerModel(void): Functor<double>(6,2*MARKER){
+    pose = VectorXd(6);
+    markerIDs.resize(MARKER);
+    Trafo2FirstCamera = Matrix4d::Identity();
+
+    cv::Mat cameraMatrix, distCoeffs;
+    cv::FileStorage fs("/home/letrend/workspace/markertracker/intrinsics.xml",cv::FileStorage::READ);
+    fs["camera_matrix"] >> cameraMatrix;
+    fs["distortion_coefficients"] >> distCoeffs;
+    fs.release();
+
+    // calculate undistortion mapping
+    cv::initUndistortRectifyMap(cameraMatrix, distCoeffs, cv::Mat(),
+                                cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, cv::Size(640,480), 1, cv::Size(640,480), 0),
+                                cv::Size(640,480), CV_16SC2, map1, map2);
+
+    std::cout<< "cameraMatrix: \n" << cameraMatrix << "\ndistCoeffs: \n" << distCoeffs << std::endl;
+
+    // camera intrinsic matrix
+    K = Matrix3d((double*)cameraMatrix.data).transpose();
+    cout << "camera instrinsics:\n" << K << endl;
+};
+
 void WebcamMarkerModel::initializeModel(){
     // this is the representation of the marker
     pos3D(0,0)=0;       pos3D(1,0)=-0.125;   pos3D(2,0)=0;       pos3D(3,0)=1;
@@ -147,56 +170,11 @@ void WebcamMarkerModel::initializeModel(){
     delete lm;
 }
 
-void WebcamMarkerModel::projectInto2D(Matrix3xMARKERd &position2d, Matrix4xMARKERd &position3d, Matrix3x4d &RT) {
-    position2d = K * RT * position3d;
-    for(uint col = 0; col<MARKER; col ++){
-        position2d(0,col)/=position2d(2,col);
-        position2d(1,col)/=position2d(2,col);
-    }
-}
-
-void WebcamMarkerModel::getRTmatrix(VectorXd &x, Matrix3x4d &RT){
-    RT = MatrixXd::Identity(3,4);
-    // construct quaternion (cf unit-sphere projection Terzakis paper)
-    double alpha_squared = pow(pow(pose(0),2.0)+pow(pose(1),2.0)+pow(pose(2),2.0),2.0);
-    Quaterniond q((1-alpha_squared)/(alpha_squared+1),
-                  2.0*pose(0)/(alpha_squared+1),
-                  2.0*pose(1)/(alpha_squared+1),
-                  2.0*pose(2)/(alpha_squared+1));
-    // construct RT matrix
-    RT.topLeftCorner(3,3) = q.toRotationMatrix();
-    RT.topRightCorner(3,1) << pose(3), pose(4), pose(5);
-}
-void WebcamMarkerModel::getRTmatrix(Matrix4d &RT){
-    RT = Matrix4d::Identity();
-    // construct quaternion (cf unit-sphere projection Terzakis paper)
-    double alpha_squared = pow(pow(pose(0),2.0)+pow(pose(1),2.0)+pow(pose(2),2.0),2.0);
-    Quaterniond q((1-alpha_squared)/(alpha_squared+1),
-                  2.0*pose(0)/(alpha_squared+1),
-                  2.0*pose(1)/(alpha_squared+1),
-                  2.0*pose(2)/(alpha_squared+1));
-    // construct RT matrix
-    RT.topLeftCorner(3,3) = q.toRotationMatrix();
-    RT.topRightCorner(3,1) << pose(3), pose(4), pose(5);
-}
-void WebcamMarkerModel::getRTmatrix(Matrix4f &RT){
-    RT = Matrix4f::Identity();
-    // construct quaternion (cf unit-sphere projection Terzakis paper)
-    float alpha_squared = powf(powf(pose(0),2.0f)+powf(pose(1),2.0f)+powf(pose(2),2.0f),2.0f);
-    Quaternionf q((1-alpha_squared)/(alpha_squared+1),
-                  2.0*pose(0)/(alpha_squared+1),
-                  2.0*pose(1)/(alpha_squared+1),
-                  2.0*pose(2)/(alpha_squared+1));
-    // construct RT matrix
-    RT.topLeftCorner(3,3) = q.toRotationMatrix();
-    RT.topRightCorner(3,1) << pose(3), pose(4), pose(5);
-}
-
 void WebcamMarkerModel::checkCorrespondence(){
     Matrix3x4d RT;
     getRTmatrix(pose,RT);
     Matrix4xMARKERd pos3D_backup = pos3D;
-    
+
     vector<uint> perm = {0,1,2,3};
     double minError = 1e10;
     vector<uint> bestPerm = {0,1,2,3};
@@ -226,10 +204,57 @@ void WebcamMarkerModel::checkCorrespondence(){
 //    printf("assignement: %d %d %d %d, error: %f\n", bestPerm[0], bestPerm[1], bestPerm[2], bestPerm[3], minError);
 
     pos3D <<
-            pos3D_backup(0, bestPerm[0]), pos3D_backup(0, bestPerm[1]), pos3D_backup(0, bestPerm[2]), pos3D_backup(0, bestPerm[3]),
+    pos3D_backup(0, bestPerm[0]), pos3D_backup(0, bestPerm[1]), pos3D_backup(0, bestPerm[2]), pos3D_backup(0, bestPerm[3]),
             pos3D_backup(1, bestPerm[0]), pos3D_backup(1, bestPerm[1]), pos3D_backup(1, bestPerm[2]), pos3D_backup(1, bestPerm[3]),
             pos3D_backup(2, bestPerm[0]), pos3D_backup(2, bestPerm[1]), pos3D_backup(2, bestPerm[2]), pos3D_backup(2, bestPerm[3]),
             1, 1, 1, 1;
+}
+
+void WebcamMarkerModel::projectInto2D(Matrix3xMARKERd &position2d, Matrix4xMARKERd &position3d, Matrix3x4d &RT) {
+    position2d = K * RT * position3d;
+    for(uint col = 0; col<MARKER; col ++){
+        position2d(0,col)/=position2d(2,col);
+        position2d(1,col)/=position2d(2,col);
+    }
+}
+
+void WebcamMarkerModel::getRTmatrix(VectorXd &x, Matrix3x4d &RT){
+    RT = MatrixXd::Identity(3,4);
+    // construct quaternion (cf unit-sphere projection Terzakis paper)
+    double alpha_squared = pow(pow(pose(0),2.0)+pow(pose(1),2.0)+pow(pose(2),2.0),2.0);
+    Quaterniond q((1-alpha_squared)/(alpha_squared+1),
+                  2.0*pose(0)/(alpha_squared+1),
+                  2.0*pose(1)/(alpha_squared+1),
+                  2.0*pose(2)/(alpha_squared+1));
+    // construct RT matrix
+    RT.topLeftCorner(3,3) = q.toRotationMatrix();
+    RT.topRightCorner(3,1) << pose(3), pose(4), pose(5);
+}
+
+void WebcamMarkerModel::getRTmatrix(Matrix4d &RT){
+    RT = Matrix4d::Identity();
+    // construct quaternion (cf unit-sphere projection Terzakis paper)
+    double alpha_squared = pow(pow(pose(0),2.0)+pow(pose(1),2.0)+pow(pose(2),2.0),2.0);
+    Quaterniond q((1-alpha_squared)/(alpha_squared+1),
+                  2.0*pose(0)/(alpha_squared+1),
+                  2.0*pose(1)/(alpha_squared+1),
+                  2.0*pose(2)/(alpha_squared+1));
+    // construct RT matrix
+    RT.topLeftCorner(3,3) = q.toRotationMatrix();
+    RT.topRightCorner(3,1) << pose(3), pose(4), pose(5);
+}
+
+void WebcamMarkerModel::getRTmatrix(Matrix4f &RT){
+    RT = Matrix4f::Identity();
+    // construct quaternion (cf unit-sphere projection Terzakis paper)
+    float alpha_squared = powf(powf(pose(0),2.0f)+powf(pose(1),2.0f)+powf(pose(2),2.0f),2.0f);
+    Quaternionf q((1-alpha_squared)/(alpha_squared+1),
+                  2.0*pose(0)/(alpha_squared+1),
+                  2.0*pose(1)/(alpha_squared+1),
+                  2.0*pose(2)/(alpha_squared+1));
+    // construct RT matrix
+    RT.topLeftCorner(3,3) = q.toRotationMatrix();
+    RT.topRightCorner(3,1) << pose(3), pose(4), pose(5);
 }
 
 bool WebcamMarkerModel::track(){
@@ -338,6 +363,40 @@ bool WebcamMarkerModel::track(){
         }
     }
     return false;
+}
+
+int WebcamMarkerModel::operator()(const VectorXd &x, VectorXd &fvec) const
+{
+    Matrix3xMARKERd projectedPosition2D(3,MARKER);
+    Matrix3x4d RT = MatrixXd::Identity(3,4);
+    // construct quaternion (cf unit-sphere projection Terzakis paper)
+    double alpha_squared = pow(pow(x(0),2.0)+pow(x(1),2.0)+pow(x(2),2.0),2.0);
+    Quaterniond q((1-alpha_squared)/(alpha_squared+1),
+                  2.0*x(0)/(alpha_squared+1),
+                  2.0*x(1)/(alpha_squared+1),
+                  2.0*x(2)/(alpha_squared+1));
+    // construct RT matrix
+    RT.topLeftCorner(3,3) = q.toRotationMatrix();
+    RT.topRightCorner(3,1) << x(3), x(4), x(5);
+
+    projectedPosition2D = K * RT * pos3D;
+    for(uint col = 0; col<MARKER; col ++){
+        projectedPosition2D(0,col)/=projectedPosition2D(2,col);
+        projectedPosition2D(1,col)/=projectedPosition2D(2,col);
+    }
+
+    Matrix<double,2,MARKER> difference;
+    difference = projectedPosition2D.block<2,MARKER>(0,0)-pos2D.block<2,MARKER>(0,0);
+    fvec << difference(0,0),difference(1,0),difference(0,1),difference(1,1),difference(0,2),difference(1,2),difference(0,3),difference(1,3);
+//        cout << "K\n" << K << endl;
+//        cout << "RT\n" << RT << endl;
+//        cout << "position3D\n" <<  pos3D << endl;
+//        cout << "position2D\n" <<  pos2D << endl;
+//        cout << "projectedPosition2D\n" <<  projectedPosition2D << endl;
+//        cout << "difference : " << difference <<endl;
+//        cout << "error : " << difference.squaredNorm() <<endl;
+//        cout << "x : " << x <<endl;
+    return 0;
 }
 
 MarkerTracker::MarkerTracker(vector<int> &devices){
