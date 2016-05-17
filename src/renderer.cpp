@@ -1,4 +1,3 @@
-#include <SFML/Window/Keyboard.hpp>
 #include "renderer.hpp"
 
 Renderer::Renderer(const char *file_path, const char *object) {
@@ -114,13 +113,13 @@ void Renderer::updateViewMatrix(string &object, sf::Window &window){
             float horizontalAngle = speed_rot * float(delta.x);
             float verticalAngle = speed_rot * float(delta.y);
 
-            rot = Eigen::AngleAxisf(horizontalAngle, ViewMatrix[object].block<1, 3>(1, 0)) *
-                  Eigen::AngleAxisf(verticalAngle, ViewMatrix[object].block<1, 3>(0, 0));
+            rot = Eigen::AngleAxisf(horizontalAngle, Vector3f::UnitY()) *
+                  Eigen::AngleAxisf(verticalAngle, Vector3f::UnitX());
         }
     }
 
-    Vector3f direction = ViewMatrix[object].block<1,3>(2,0);
-    Vector3f right = ViewMatrix[object].block<1,3>(0,0);
+    Vector3f direction = Vector3f::UnitZ();
+    Vector3f right = Vector3f::UnitX();
 
     Vector3f dcameraPos(0,0,0);
     // Move forward
@@ -144,7 +143,7 @@ void Renderer::updateViewMatrix(string &object, sf::Window &window){
     RT.topLeftCorner(3,3) = rot;
     RT.topRightCorner(3,1) = dcameraPos;
 
-    ViewMatrix[object] = ViewMatrix[object]*RT;
+    ViewMatrix[object] = RT*ViewMatrix[object];
 }
 
 bool Renderer::loadShaderCodeFromFile(const char *file_path, string &src) {

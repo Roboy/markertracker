@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     glewInit();
 
     // initialize marker tracker for webcams with device IDs 0 and 1
-    std::vector<int> devices = {0,1};
+    std::vector<int> devices = {0};
     MarkerTracker markerTracker(devices);
 
     for(uint device=0;device<markerTracker.webcam.size(); device++) {
