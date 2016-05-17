@@ -6,7 +6,7 @@
 #include <SFML/Window.hpp>
 
 #include "markertracker.hpp"
-#include "renderer.hpp"
+#include "model.hpp"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -66,14 +66,11 @@ int main(int argc, char *argv[]) {
         cv::createTrackbar("threshold",markerTracker.webcam[device].name,&markerTracker.webcam[device].threshold_value,255);
     }
 
-    // create opengl renderer
-    char file_path[] = "/home/letrend/workspace/markertracker";
-    string obj = "sphere";
-    Renderer renderer(file_path, obj.c_str());
-
-    // load a mesh
-    Mesh origin, sphere;
-    sphere.LoadMesh("/home/letrend/workspace/markertracker/models/sphere.dae");
+    Model model("/home/letrend/workspace/markertracker","origin.dae");
+    Vector3f cameraPosition(0,0,0);
+    Vector3f point(0,0,1);
+    // first person camera
+    model.lookAt(point,cameraPosition);
 
     Matrix4f pose_sphere = Matrix4f::Identity();
 
@@ -117,10 +114,12 @@ int main(int argc, char *argv[]) {
                 pose_sphere = markerTracker.ModelMatrix.cast<float>();
                 Vector3f position = pose_sphere.topRightCorner(3,1);
                 printf("( %.4f, %.4f, %.4f )\n", position(0), position(1), position(2));
-                renderer.updateViewMatrix(obj, window);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                renderer.renderColor(obj, pose_sphere, &sphere);
+                model.updateViewMatrix(window);
+                // render the object with the updated modelmatrix
+                Mat img;
+                model.render(pose_sphere,img);
                 window.display();
+
                 currentState = NextState(currentState);
                 break;
             }

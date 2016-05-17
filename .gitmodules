@@ -1,0 +1,3 @@
+[submodule "omgl"]
+	path = omgl
+	url = https://github.com/letrend/omgl
