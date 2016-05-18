@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     glewInit();
 
     // initialize marker tracker for webcams with device IDs 0 and 1
-    std::vector<int> devices = {0,1};
+    std::vector<int> devices = {0};
     MarkerTracker markerTracker(devices);
 
     for(uint device=0;device<markerTracker.webcam.size(); device++) {
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
         cv::createTrackbar("threshold",markerTracker.webcam[device].name,&markerTracker.webcam[device].threshold_value,255);
     }
 
-    Model model("/home/letrend/workspace/markertracker","origin.dae");
+    Model model("/home/letrend/workspace/markertracker","markermodel.dae");
     Vector3f cameraPosition(0,0,0);
     Vector3f point(0,0,1);
     // first person camera
