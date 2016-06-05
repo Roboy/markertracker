@@ -1,10 +1,18 @@
-# markertracker
+## markertracker
 tracks a marker model consisting of 4 UV-leds 
 
-# dependencies 
+## dependencies 
 Eigen, SFML, glew, image magick, assimp, opengl, OpenCV, sdformat, pcl, boost
 
-# build
+## checkout 
+```
+#!bash
+git clone https://github.com/Roboy/markertracker
+cd path/to/markertracker
+git submodule init
+git submoulde update
+```
+## build
 ```
 #!bash
 cd path/to/markertracker
@@ -13,7 +21,7 @@ cd build
 cmake ..
 make 
 ```
-# run
+## run
 ```
 #!bash
 cd path/to/markertracker/bin
