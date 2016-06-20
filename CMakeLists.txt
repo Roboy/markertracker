@@ -23,9 +23,6 @@ include_directories( ${EIGEN3_INCLUDE_DIRS} )
 # SFML
 pkg_check_modules( SFML REQUIRED sfml-graphics )
 
-# glew
-find_package(GLEW REQUIRED)
-
 # image magick
 find_package( ImageMagick COMPONENTS Magick++ MagickWand MagickCore REQUIRED)
 include_directories(${ImageMagick_Magick++_INCLUDE_DIR})
