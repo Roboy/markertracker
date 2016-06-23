@@ -2,8 +2,12 @@
 tracks a marker model consisting of 4 UV-leds 
 
 ## dependencies 
-Eigen, SFML, glew, image magick, assimp, opengl, OpenCV, sdformat, pcl, boost
-
+Eigen, SFML, image magick, assimp, opengl, OpenCV, sdformat, pcl, boost
+### on Ubuntu 14.04
+```
+#!bash
+sudo apt-get install libeigen3-dev libsfml-dev libmagick++-dev libassimp-dev libglm-dev libopencv-dev libpcl-1.7-all-dev
+```
 ## checkout 
 ```
 #!bash
