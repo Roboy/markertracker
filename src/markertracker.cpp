@@ -483,7 +483,7 @@ bool MarkerTracker::findTrafoBetweenCameras(){
         poseEstimation();
         goodEnough = 0;
         for(uint device=0; device<webcam.size(); device++){
-            if(webcam[device].reprojectionError<1.0){
+            if(webcam[device].reprojectionError<2.0){
                 bestPose[device] = webcam[device].ModelMatrix;
                 goodEnough += 1;
             }else if(webcam[device].reprojectionError>20){ // lost coorect assignement, reinitialize

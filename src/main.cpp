@@ -1,4 +1,3 @@
-#define GLM_FORCE_RADIANS
 // Include GLEW
 #include <GL/glew.h>
 
@@ -57,7 +56,7 @@ int main(int argc, char *argv[]) {
     glewInit();
 
     // initialize marker tracker for webcams with device IDs 0 and 1
-    std::vector<int> devices = {0};
+    std::vector<int> devices = {1};
     MarkerTracker markerTracker(devices);
 
     for(uint device=0;device<markerTracker.webcam.size(); device++) {

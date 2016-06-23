@@ -28,19 +28,21 @@ find_package( ImageMagick COMPONENTS Magick++ MagickWand MagickCore REQUIRED)
 include_directories(${ImageMagick_Magick++_INCLUDE_DIR})
 
 # assimp
-find_package(assimp REQUIRED)
+pkg_check_modules(assimp REQUIRED assimp)
+include_directories( ${assimp_INCLUDE_DIRS} )
+
+# glew
+pkg_check_modules(glew REQUIRED glew)
+include_directories( ${glew_INCLUDE_DIRS} )
 
 # opengl
 find_package(OpenGL REQUIRED)
 
-# glm
-find_package(glm REQUIRED)
-
 # OpenCV
-find_package(OpenCV 3.1.0 COMPONENTS opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs opencv_calib3d opencv_videoio REQUIRED)
+find_package(OpenCV 2.4.1 COMPONENTS opencv_core opencv_highgui opencv_imgproc opencv_calib3d REQUIRED)
 
 # sdformat
-find_package(SDFormat REQUIRED)
+find_package(SDFormat 4 REQUIRED)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
 # pcl
@@ -57,6 +59,6 @@ include_directories(include omgl/include)
 #==============================================================================
 
 ADD_EXECUTABLE(markertracker src/main.cpp src/markertracker.cpp omgl/src/mesh.cpp omgl/src/model.cpp omgl/src/renderer.cpp)
-TARGET_LINK_LIBRARIES(markertracker ${SFML_LIBRARIES} ${GLEW_LIBRARIES} ${ASSIMP_LIBRARIES} ${OPENGL_LIBRARIES}
-        ${ImageMagick_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${SDFormat_LIBRARIES} ${BOOST_LIBRARIES})
+TARGET_LINK_LIBRARIES(markertracker ${SFML_LIBRARIES} ${glew_LIBRARIES} ${assimp_LIBRARIES} ${OPENGL_LIBRARIES}
+        ${ImageMagick_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${SDFormat_LIBRARIES} ${BOOST_LIBRARIES} -lpthread)
 
