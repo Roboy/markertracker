@@ -25,10 +25,9 @@ WebcamMarkerModel::WebcamMarkerModel(void): Functor<double>(6,2*MARKER){
 
 void WebcamMarkerModel::initializeModel(){
     // this is the representation of the marker
-    pos3D(0,0)=0;       pos3D(1,0)=-0.123;   pos3D(2,0)=0;       pos3D(3,0)=1;
-    pos3D(0,1)=0;       pos3D(1,1)=0;       pos3D(2,1)=-0.08;   pos3D(3,1)=1;
-    pos3D(0,2)=-0.105;   pos3D(1,2)=0;       pos3D(2,2)=0;       pos3D(3,2)=1;
-    pos3D(0,3)=0.182;  pos3D(1,3)=0;       pos3D(2,3)=0;  pos3D(3,3)=1;
+    pos3D(0,0)=-0.048;  pos3D(1,0)=0;   pos3D(2,0)=0;   pos3D(3,0)=1;
+    pos3D(0,1)=0;       pos3D(1,1)=0.07;   pos3D(2,1)=0;       pos3D(3,1)=1;
+    pos3D(0,2)=0.095;   pos3D(1,2)=0;       pos3D(2,2)=0;       pos3D(3,2)=1;
 
     origin3D << 0,0,0,1;
     origin2D << 0,0,1;
@@ -87,29 +86,18 @@ void WebcamMarkerModel::initializeModel(){
                      return a.x <= b.x;
                  });
             char str[1];
-            sprintf(str, "%d", 2);
+            sprintf(str, "%d", 0);
             circle(img, centers[0], 10, cv::Scalar(0, 255, 0), (int)radius[0]);
             putText(img, str, centers[0], cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1,
                     cv::Scalar::all(0));
-            sprintf(str, "%d", 3);
-            circle(img, centers[3], 10, cv::Scalar(0, 255, 0), (int)radius[3]);
-            putText(img, str, centers[3], cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1,
-                    cv::Scalar::all(0));
-            // sort the remaining two centers wrt y coordinates
-            sprintf(str, "%d", 0);
-            circle(img,
-                   centers[1].y > centers[2].y ? centers[2] : centers[1], 10,
-                   cv::Scalar(0, 255, 0), centers[1].y < centers[2].y ? (int)radius[2] : (int)radius[1]);
-            putText(img, str,
-                    centers[1].y > centers[2].y ? centers[1] : centers[2],
-                    cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar::all(0));
             sprintf(str, "%d", 1);
-            circle(img,
-                   centers[1].y < centers[2].y ? centers[2] : centers[1], 10,
-                   cv::Scalar(0, 255, 0), centers[1].y > centers[2].y ? (int)radius[2] : (int)radius[1]);
-            putText(img, str,
-                    centers[1].y < centers[2].y ? centers[2] : centers[1],
-                    cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar::all(0));
+            circle(img, centers[1], 10, cv::Scalar(0, 255, 0), (int)radius[1]);
+            putText(img, str, centers[1], cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1,
+                    cv::Scalar::all(0));
+            sprintf(str, "%d", 2);
+            circle(img, centers[2], 10, cv::Scalar(0, 255, 0), (int)radius[2]);
+            putText(img, str, centers[2], cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 1,
+                    cv::Scalar::all(0));
             break;
         } else {
             // draw detected contours onto output image
@@ -123,11 +111,10 @@ void WebcamMarkerModel::initializeModel(){
     }
 
     // write those positions to the model
-    pos2D(0,0) = centers[1].y > centers[2].y ? centers[2].x : centers[1].x; pos2D(1,0) = centers[1].y > centers[2].y ? centers[2].y : centers[1].y; pos2D(2,0) = 1;
-    pos2D(0,1) = centers[1].y < centers[2].y ? centers[2].x : centers[1].x; pos2D(1,1) = centers[1].y < centers[2].y ? centers[2].y : centers[1].y; pos2D(2,1) = 1;
-    pos2D(0,2) = centers[0].x; pos2D(1,2) = centers[0].y; pos2D(2,2) = 1;
-    pos2D(0,3) = centers[3].x; pos2D(1,3) = centers[3].y; pos2D(2,3) = 1;
-//    cout << "pos2D: \n" << pos2D << endl;
+    pos2D(0,0) = centers[0].x; pos2D(1,0) = centers[0].y; pos2D(2,0) = 1;
+    pos2D(0,1) = centers[1].x; pos2D(1,1) = centers[1].y; pos2D(2,1) = 1;
+    pos2D(0,2) = centers[2].x; pos2D(1,2) = centers[2].y; pos2D(2,2) = 1;
+    cout << "pos2D: \n" << pos2D << endl;
 
     for(uint id=0; id<MARKER; id++)
         markerIDs[id]=id;
@@ -140,7 +127,7 @@ void WebcamMarkerModel::initializeModel(){
     lm->parameters.maxfev = 2000;
     lm->parameters.xtol = 1.0e-10;
     int ret = lm->minimize(pose);
-//    cout << "iterations: " << lm->iter << endl;
+    cout << "iterations: " << lm->iter << endl;
 //    cout << "x that minimizes the function: \n" << pose << endl;
 
     Matrix3x4d RT;
@@ -175,18 +162,18 @@ void WebcamMarkerModel::checkCorrespondence(){
     getRTmatrix(pose,RT);
     Matrix4xMARKERd pos3D_backup = pos3D;
 
-    vector<uint> perm = {0,1,2,3};
+    vector<uint> perm = {0,1,2};
     double minError = 1e10;
-    vector<uint> bestPerm = {0,1,2,3};
+    vector<uint> bestPerm = {0,1,2};
     cv::Mat img = cv::Mat::zeros(cv::Size(640,480),CV_8UC3);
 
     Matrix3xMARKERd projectedPosition2D(3,MARKER);
     do {
         pos3D <<
-        pos3D_backup(0,perm[0]), pos3D_backup(0,perm[1]), pos3D_backup(0,perm[2]), pos3D_backup(0,perm[3]),
-                pos3D_backup(1,perm[0]), pos3D_backup(1,perm[1]), pos3D_backup(1,perm[2]), pos3D_backup(1,perm[3]),
-                pos3D_backup(2,perm[0]), pos3D_backup(2,perm[1]), pos3D_backup(2,perm[2]), pos3D_backup(2,perm[3]),
-                1,1,1,1;
+        pos3D_backup(0,perm[0]), pos3D_backup(0,perm[1]), pos3D_backup(0,perm[2]),
+                pos3D_backup(1,perm[0]), pos3D_backup(1,perm[1]), pos3D_backup(1,perm[2]),
+                pos3D_backup(2,perm[0]), pos3D_backup(2,perm[1]), pos3D_backup(2,perm[2]),
+                1,1,1;
         projectInto2D(projectedPosition2D, pos3D, RT);
         Matrix<double,2,MARKER> difference;
         difference = projectedPosition2D.block<2,MARKER>(0,0)-pos2D.block<2,MARKER>(0,0);
@@ -204,10 +191,10 @@ void WebcamMarkerModel::checkCorrespondence(){
 //    printf("assignement: %d %d %d %d, error: %f\n", bestPerm[0], bestPerm[1], bestPerm[2], bestPerm[3], minError);
 
     pos3D <<
-    pos3D_backup(0, bestPerm[0]), pos3D_backup(0, bestPerm[1]), pos3D_backup(0, bestPerm[2]), pos3D_backup(0, bestPerm[3]),
-            pos3D_backup(1, bestPerm[0]), pos3D_backup(1, bestPerm[1]), pos3D_backup(1, bestPerm[2]), pos3D_backup(1, bestPerm[3]),
-            pos3D_backup(2, bestPerm[0]), pos3D_backup(2, bestPerm[1]), pos3D_backup(2, bestPerm[2]), pos3D_backup(2, bestPerm[3]),
-            1, 1, 1, 1;
+    pos3D_backup(0, bestPerm[0]), pos3D_backup(0, bestPerm[1]), pos3D_backup(0, bestPerm[2]),
+            pos3D_backup(1, bestPerm[0]), pos3D_backup(1, bestPerm[1]), pos3D_backup(1, bestPerm[2]),
+            pos3D_backup(2, bestPerm[0]), pos3D_backup(2, bestPerm[1]), pos3D_backup(2, bestPerm[2]),
+            1, 1, 1;
 }
 
 void WebcamMarkerModel::projectInto2D(Matrix3xMARKERd &position2d, Matrix4xMARKERd &position3d, Matrix3x4d &RT) {
@@ -300,7 +287,7 @@ bool WebcamMarkerModel::track(){
 
         reprojectionError = 1000000;
 
-        if (contours.size() == 4) {
+        if (contours.size() == MARKER) {
             // draw detected contours onto output image
             for (int idx = 0; idx < contours.size(); idx++) {
                 drawContours(img, contours, idx, cv::Scalar(0, 255, 0), 4, 8, hierarchy, 0,

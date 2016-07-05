@@ -17,7 +17,7 @@
 #include <glm/detail/type_mat.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "timer.hpp"
-#define MARKER 4
+#define MARKER 3
 using namespace std;
 using namespace Eigen;
 

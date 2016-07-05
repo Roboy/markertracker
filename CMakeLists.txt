@@ -36,9 +36,6 @@ find_package(assimp REQUIRED)
 # opengl
 find_package(OpenGL REQUIRED)
 
-# glm
-find_package(glm REQUIRED)
-
 # OpenCV
 find_package(OpenCV 3.1.0 COMPONENTS opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs opencv_calib3d opencv_videoio REQUIRED)
 
