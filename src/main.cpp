@@ -7,6 +7,10 @@
 #include "markertracker.hpp"
 #include "model.hpp"
 
+// ros
+#include <ros/ros.h>
+#include <visualization_msgs/Marker.h>
+
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
@@ -75,6 +79,12 @@ int main(int argc, char *argv[]) {
 
     ActionState currentState = Initialize;
 
+    ros::init(argc, argv, "markertracker");
+    ros::NodeHandle nh;
+    ros::Publisher rvis_marker_pub;
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+
     char c;
     bool running = true;
     while (running){
@@ -119,9 +129,12 @@ int main(int argc, char *argv[]) {
                 model.render(pose_sphere,img);
                 window.display();
 
+                rvis_marker_pub=nh.advertise<visualization_msgs::Marker>("/visualization_marker", 1000);
+
                 currentState = NextState(currentState);
                 break;
             }
+
         }
     }
     markerTracker.stopPoseTracking = true;

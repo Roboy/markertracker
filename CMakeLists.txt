@@ -15,6 +15,10 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 #==============================================================================
 # Dependencies
 #==============================================================================
+# ros
+find_package(catkin REQUIRED COMPONENTS roscpp controller_manager std_msgs)
+catkin_package(CATKIN_DEPENDS message_runtime)
+
 # Eigen
 find_package( PkgConfig )
 pkg_check_modules( EIGEN3 REQUIRED eigen3 )
@@ -53,6 +57,10 @@ add_definitions(${PCL_DEFINITIONS})
 # boost
 find_package(Boost COMPONENTS filesystem REQUIRED)
 
+# ros
+pkg_check_modules( roscpp REQUIRED roscpp)
+pkg_check_modules( visualization_msgs REQUIRED visualization_msgs)
+
 include_directories(include omgl/include)
 #==============================================================================
 # Application
@@ -60,5 +68,6 @@ include_directories(include omgl/include)
 
 ADD_EXECUTABLE(markertracker src/main.cpp src/markertracker.cpp omgl/src/mesh.cpp omgl/src/model.cpp omgl/src/renderer.cpp)
 TARGET_LINK_LIBRARIES(markertracker ${SFML_LIBRARIES} ${glew_LIBRARIES} ${assimp_LIBRARIES} ${OPENGL_LIBRARIES}
-        ${ImageMagick_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${SDFormat_LIBRARIES} ${BOOST_LIBRARIES} -lpthread)
+        ${ImageMagick_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${SDFormat_LIBRARIES} ${BOOST_LIBRARIES} -lpthread
+        ${catkin_LIBRARIES} )
 
