@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         cv::createTrackbar("threshold",markerTracker.webcam[device].name,&markerTracker.webcam[device].threshold_value,255);
     }
 
-    Model model("~/workspace/markertracker","markermodel.dae");
+    Model model("/home/letrend/workspace/markertracker","markermodel.dae");
     Vector3f cameraPosition(0,0,0);
     Vector3f point(0,0,1);
     // first person camera
