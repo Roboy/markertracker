@@ -1,15 +1,17 @@
 #pragma once
-
+// eigen
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <unsupported/Eigen/NumericalDiff>
-#include <string>
-#include <vector>
+// opencv
 #include "opencv2/opencv.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+// std
+#include <string>
+#include <vector>
 #include <iostream>
 #include <algorithm>
 #include <thread>
