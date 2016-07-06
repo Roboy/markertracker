@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
     Matrix4f pose_sphere = Matrix4f::Identity();
 
-    ActionState currentState = Track;
+    ActionState currentState = Initialize;
 
     ros::init(argc, argv, "markertracker");
     ros::NodeHandle nh;
@@ -157,7 +157,8 @@ int main(int argc, char *argv[]) {
                 marker.type = visualization_msgs::Marker::CUBE;
                 marker.action = visualization_msgs::Marker::ADD;
                 Vector3f position = pose_sphere.topRightCorner(3,1);
-                printf("( %.4f, %.4f, %.4f )\n", position(0), position(1), position(2));
+                if(ros::Time::now().sec%10==0)
+                    printf("( %.4f, %.4f, %.4f )\n", position(0), position(1), position(2));
                 Matrix3f pose = pose_sphere.topLeftCorner(3,3);
                 Quaternionf q(pose);
                 marker.pose.position.x = position(0);
@@ -176,8 +177,7 @@ int main(int argc, char *argv[]) {
                 marker.color.a = 1;
                 marker.lifetime = ros::Duration(30);
                 rviz_marker_pub.publish(marker);
-                ros::Duration d(1.0);
-                d.sleep();
+                currentState = NextState(currentState);
             }
         }
     }
