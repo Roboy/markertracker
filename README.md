@@ -31,3 +31,4 @@ make
 cd path/to/markertracker/build/devel/lib/markertracker
 ./markertracker
 ```
+you need to add a subscriber to the ros topic '/visualization_marker', otherwise the tracking does not start. You can use a custom subscriber or rviz (in rviz click on add -> by topic -> marker, green oriented cubes should appear while tracking). 
