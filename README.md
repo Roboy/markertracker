@@ -4,9 +4,34 @@ tracks a marker model consisting of 4 UV-leds
 ## dependencies 
 Eigen, glew, SFML, image magick, assimp, opengl, OpenCV, sdformat, pcl, boost, ros
 ### on Ubuntu 14.04
+please follow the install instructions for [ros jade](http://wiki.ros.org/jade/Installation/Ubuntu) before continueing.
 ```
 #!bash
-sudo apt-get install libeigen3-dev libglew-dev libsfml-dev libmagick++-dev libassimp-dev libglm-dev libopencv-dev libpcl-1.7-all-dev ros-jade-desktop-full
+sudo apt-get install libeigen3-dev libglew-dev libsfml-dev libmagick++-dev libassimp-dev libglm-dev libopencv-dev libpcl-1.7-all-dev ros-jade-controller-manager mercurial
+```
+### ignition math 2
+
+hg clone https://bitbucket.org/ignitionrobotics/ign-math
+cd ign-math
+hg up ign-math2
+mkdir build
+cd build
+cmake ..
+make -j4 
+sudo make install
+
+### sdformat 4
+```
+#!bash
+hg clone https://bitbucket.org/osrf/sdformat
+cd sdformat
+hg up sdf4
+mkdir build
+cd build
+sudo apt-get install libruby
+cmake ..
+make -j4
+sudo make install
 ```
 ## checkout 
 ```
