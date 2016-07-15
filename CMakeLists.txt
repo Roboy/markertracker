@@ -43,7 +43,7 @@ include_directories( ${glew_INCLUDE_DIRS} )
 find_package(OpenGL REQUIRED)
 
 # OpenCV
-find_package(OpenCV 3.1.0 COMPONENTS opencv_core opencv_highgui opencv_imgproc opencv_calib3d REQUIRED)
+find_package(OpenCV COMPONENTS opencv_core opencv_highgui opencv_imgproc opencv_calib3d REQUIRED)
 
 # sdformat
 find_package(SDFormat 4 REQUIRED)
