@@ -10,7 +10,8 @@ please follow the install instructions for [ros jade](http://wiki.ros.org/jade/I
 sudo apt-get install libeigen3-dev libglew-dev libsfml-dev libmagick++-dev libassimp-dev libglm-dev libopencv-dev libpcl-1.7-all-dev ros-jade-controller-manager mercurial
 ```
 ### ignition math 2
-
+```
+#!bash
 hg clone https://bitbucket.org/ignitionrobotics/ign-math
 cd ign-math
 hg up ign-math2
@@ -19,7 +20,7 @@ cd build
 cmake ..
 make -j4 
 sudo make install
-
+```
 ### sdformat 4
 ```
 #!bash
